@@ -10,6 +10,7 @@ from django.test import SimpleTestCase
 
 from .models import (
     Band, Song, User, ValidationTestInlineModel, ValidationTestModel,
+    ValidationTestModelWithDescriptor,
 )
 
 
@@ -508,6 +509,18 @@ class ListDisplayTests(CheckTestCase):
             list_display = ('name', 'decade_published_in', 'a_method', a_callable)
 
         self.assertIsValid(TestModelAdmin, ValidationTestModel)
+
+    def test_field_with_descriptor_that_raises_exception(self):
+        """
+        Test that a field with a descriptor that raises an exception when accessed
+        on the model class (like PositionField) is still validated correctly.
+        This tests the fix for the bug where hasattr(model, item) returning False
+        would prevent get_field() from being tried.
+        """
+        class TestModelAdmin(ModelAdmin):
+            list_display = ('name', 'descriptor_field')
+
+        self.assertIsValid(TestModelAdmin, ValidationTestModelWithDescriptor)
 
 
 class ListDisplayLinksCheckTests(CheckTestCase):

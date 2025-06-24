@@ -52,3 +52,20 @@ class ValidationTestModel(models.Model):
 
 class ValidationTestInlineModel(models.Model):
     parent = models.ForeignKey(ValidationTestModel, models.CASCADE)
+
+
+class DescriptorField(models.IntegerField):
+    """
+    A custom field that mimics the behavior of PositionField from django-positions.
+    When accessed on the model class (not instance), it raises an exception,
+    but it should still be found via model._meta.get_field().
+    """
+    def __get__(self, instance, owner):
+        if instance is None:
+            raise AttributeError("DescriptorField cannot be accessed on model class")
+        return super().__get__(instance, owner)
+
+
+class ValidationTestModelWithDescriptor(models.Model):
+    name = models.CharField(max_length=100)
+    descriptor_field = DescriptorField()
